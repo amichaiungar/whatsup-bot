@@ -9,8 +9,7 @@ async function getAuthToken() {
         keyFile:"service_account_credentials.json",
         scopes: 'https://www.googleapis.com/auth/spreadsheets'
     });
-    const authToken = await auth.getClient();
-    return authToken;
+    return await auth.getClient();
 }
 
 async function getSpreadSheet({spreadsheetId, auth}) {
@@ -26,8 +25,7 @@ async function getSpreadSheetTabs({spreadsheetId, auth}) {
         spreadsheetId,
         auth,
     });
-    const sheetNames = res.data.sheets.map(sheet => sheet.properties.title);
-    return sheetNames;
+    return res.data.sheets.map(sheet => sheet.properties.title);
 }
 
 async function getSpreadSheetValues({spreadsheetId, auth, sheetName}) {

@@ -7,10 +7,10 @@
   },
   "name": "whatsup",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "whatsapp-bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server"
+    "dev": "nodemon whatsapp-bot"
   },
   "keywords": [],
   "author": "",

@@ -7,8 +7,16 @@ const {
     findMeInAllTabs
 } = require('./googleSheetsService.js');
 
-const spreadsheetId = process.argv[2];
-const sheetName = process.argv[3];
+const {
+    convertFromIndexToTimeAndPlace,
+    searchSoldierAtListByPhone,
+    convertFromIndexToTimeAndPlaceInWhatsupFormat
+} = require('./ourExcelUtils.js')
+
+const constants = require('./constants');
+
+const spreadsheetId = constants.SPREADSHEET_ID;
+const sheetName = constants.TEST_SHEET;
 
 async function testGetSpreadSheet() {
     try {
@@ -69,16 +77,20 @@ async function testFindMeInInASpecificTab() {
 async function testFindMe() {
     try {
         const auth = await getAuthToken();
-        const valueToFind = "אונגר";
+        const valueToFind = "עמיחי אונגר";
         const response = await findMeInAllTabs({
             spreadsheetId,
             auth,
             valueToFind
         })
-        console.log('output for getSpreadSheetTabs', JSON.stringify(response, null, 2));
+        console.log('output for getSpreadSheetTabs', JSON.stringify(convertFromIndexToTimeAndPlaceInWhatsupFormat(response), null, 2));
     } catch(error) {
         console.log(error.message, error.stack);
     }
+}
+
+function testSearchSoldierAtListByPhone(){
+    console.log(searchSoldierAtListByPhone("972556618842").name);
 }
 
 function main() {
@@ -87,6 +99,7 @@ function main() {
     //testGetSpreadSheetTabs();
     testFindMe();
     //testFindMeInInASpecificTab();
+    //testSearchSoldierAtListByPhone();
 }
 
 main()
