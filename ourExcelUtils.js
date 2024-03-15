@@ -15,12 +15,36 @@ function convertFromIndexToTimeAndPlaceInWhatsupFormat(schedule){
     let conversion = "";
     schedule.forEach((item) => {
         const { sheetName, result } = item;
-        conversion =  conversion + " *" + sheetName + "* ";
+        conversion =  conversion + "*" + sheetName + "* ";
         let tabData = "";
+        let firstTime =null;
+        let lastTime = null;
+        let where = null;
         result.forEach(({ rowNum, colNum }) => {
-            tabData = tabData + "(" + time[rowNum] + ")" + place[colNum] + ",";
+            if (firstTime===null) {
+                firstTime = time[rowNum];
+                where = place[colNum];
+            }
+            if (where!==place[colNum]){//same person, different location
+                if (firstTime != null && where!=null) {
+                    tabData = firstTime + "-" + lastTime + ":" + where;
+                    conversion = conversion + tabData + "\r\n";
+                }
+                else
+                    conversion = conversion + firstTime + "-" + lastTime + ":" + "חופשי" + "\r\n";
+                firstTime = time[rowNum];
+                where = place[colNum];
+            }
+            lastTime = time[rowNum + 1];
+
         });
-        conversion = conversion + tabData;
+        //console.log("firstTime:" + firstTime + " where:"+ where);
+        if (firstTime != null && where!=null) {//in case you have a free day, tab exists but no duties on this day
+            tabData = firstTime + "-" + lastTime + ":" + where;
+            conversion = conversion + tabData + "\r\n";
+        }
+        else
+            conversion = conversion + "חופשי" + "\r\n";
     });
     return conversion;
 }
@@ -31,9 +55,6 @@ function convertFromIndexToTimeAndPlace(schedule){
         const { sheetName, result } = item;
         let tabData = [];
         result.forEach(({ rowNum, colNum }) => {
-            //if (result.empty())
-            //  console.log(`no schedule for Sheet: ${sheetName}`);
-
             tabData.push({where: place[colNum], when : time[rowNum]});
         });
         convertion.push({tab: sheetName, tabData})
@@ -43,6 +64,23 @@ function convertFromIndexToTimeAndPlace(schedule){
 
 function searchSoldierAtListByPhone(phone) {
     return soldeirs.soldiers.find((s) => s.phone === phone);
+}
+
+function getTimeRow(hour){
+    return timeToRowObj[hour];
+}
+
+function transalteRow(rows, rowNum) {
+    const row = rows[rowNum-1];
+    let result = "";
+    for (let i = 1; i < row.length; i++) {
+        let name = row[i];
+        if (name!= null && name.length>0) {
+            if (place[i + 1])
+                result = result + name + "(" + place[i + 1] + "), ";
+        }
+    }
+    return result;
 }
 
 
@@ -78,12 +116,40 @@ const time = {
     22: '20:00',
     23: '21:00',
     24: '22:00',
-    25: '23:00'
+    25: '23:00',
+    26: '00:00'
+};
+
+const timeToRowObj = {
+    '00:00' :2,
+    '01:00' :3,
+    '02:00' :4,
+    '03:00' :5,
+    '04:00' :6,
+    '05:00' :7,
+    '06:00' :8,
+    '07:00' :9,
+    '08:00' :10,
+    '09:00' :11,
+    '10:00' :12,
+    '11:00' :13,
+    '12:00' :14,
+    '13:00' :15,
+    '14:00' :16,
+    '15:00' :17,
+    '16:00' :18,
+    '17:00' :19,
+    '18:00' :20,
+    '19:00' :21,
+    '20:00' :22,
+    '21:00' :23,
+    '22:00' :24,
+    '23:00' :25
 };
 
 module.exports = {
-    convertFromIndexToTimeAndPlace,
+    getTimeRow,
     searchSoldierAtListByPhone,
-    reverseString,
+    transalteRow,
     convertFromIndexToTimeAndPlaceInWhatsupFormat
 }
