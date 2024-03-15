@@ -1,36 +1,25 @@
 const {
-    getAuthToken,
-    getSpreadSheet,
     getSpreadSheetTabs,
     getSpreadSheetValues,
     findMeInInASpecificTab,
-    findMeInAllTabs
+    findMeInAllTabs,
+    updateCacheWithSpreadSheet,
+    whoIsNow,
+    whoIsLater,
+    findSheet
 } = require('./googleSheetsService.js');
 
-const spreadsheetId = process.argv[2];
-const sheetName = process.argv[3];
+const {
+    searchSoldierAtListByPhone,
+    convertFromIndexToTimeAndPlaceInWhatsupFormat
+} = require('./ourExcelUtils.js')
 
-async function testGetSpreadSheet() {
-    try {
-        const auth = await getAuthToken();
-        const response = await getSpreadSheet({
-            spreadsheetId,
-            auth
-        })
-        console.log('output for getSpreadSheet', JSON.stringify(response.data, null, 2));
-    } catch(error) {
-        console.log(error.message, error.stack);
-    }
-}
+const constants = require('./constants');
+const sheetName = constants.TEST_SHEET;
 
 async function testGetSpreadSheetValues() {
     try {
-        const auth = await getAuthToken();
-        const response = await getSpreadSheetValues({
-            spreadsheetId,
-            sheetName,
-            auth
-        })
+        const response = await getSpreadSheetValues(sheetName)
         console.log('output for getSpreadSheetValues', JSON.stringify(response.data, null, 2));
     } catch(error) {
         console.log(error.message, error.stack);
@@ -39,11 +28,7 @@ async function testGetSpreadSheetValues() {
 
 async function testGetSpreadSheetTabs() {
     try {
-        const auth = await getAuthToken();
-        const response = await getSpreadSheetTabs({
-            spreadsheetId,
-            auth
-        })
+        const response = await getSpreadSheetTabs();
         console.log('output for getSpreadSheetTabs', JSON.stringify(response, null, 2));
     } catch(error) {
         console.log(error.message, error.stack);
@@ -52,11 +37,8 @@ async function testGetSpreadSheetTabs() {
 
 async function testFindMeInInASpecificTab() {
     try {
-        const auth = await getAuthToken();
         const valueToFind = "אונגר";
         const response = await findMeInInASpecificTab({
-            spreadsheetId,
-            auth,
             valueToFind,
             sheetName
         })
@@ -65,28 +47,46 @@ async function testFindMeInInASpecificTab() {
         console.log(error.message, error.stack);
     }
 }
-
-async function testFindMe() {
+async function setUp() {
     try {
-        const auth = await getAuthToken();
-        const valueToFind = "אונגר";
-        const response = await findMeInAllTabs({
-            spreadsheetId,
-            auth,
-            valueToFind
-        })
-        console.log('output for getSpreadSheetTabs', JSON.stringify(response, null, 2));
+        await updateCacheWithSpreadSheet();
     } catch(error) {
         console.log(error.message, error.stack);
     }
 }
 
+async function testFindMe() {
+    try {
+        await updateCacheWithSpreadSheet();
+        const valueToFind = "אהד כהן";
+        const response = await findMeInAllTabs({
+            valueToFind
+        })
+        console.log('output for getSpreadSheetTabs', JSON.stringify(convertFromIndexToTimeAndPlaceInWhatsupFormat(response), null, 2));
+    } catch(error) {
+        console.log(error.message, error.stack);
+    }
+}
+
+async function now() {
+    await whoIsNow();
+}
+
+function testSearchSoldierAtListByPhone(){
+    console.log(searchSoldierAtListByPhone("972556618842").name);
+}
+
 function main() {
-    //testGetSpreadSheet();
-    //testGetSpreadSheetValues();
-    //testGetSpreadSheetTabs();
-    testFindMe();
-    //testFindMeInInASpecificTab();
+    //setUp().then(r => testFindMe().then(testGetSpreadSheetValues()));
+    setUp().then(r => testFindMe());
+    //setUp().then(r =>  console.log("now:" + whoIsNow()));
+
+    //setUp().then(r => console.log("now:" + whoIsNow())).then(r => console.log("later " + whoIsLater()));
+ //   testGetSpreadSheetTabs();
+
+
+ //   testFindMeInInASpecificTab();
+ //   testSearchSoldierAtListByPhone();
 }
 
 main()
