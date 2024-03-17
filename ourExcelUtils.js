@@ -1,4 +1,4 @@
-var soldeirs=require('./soldiers.json');
+const soldeirs=require('./soldiers.json');
 function getRow(rowNum) {
     return rowNum;
 }
@@ -20,6 +20,7 @@ function convertFromIndexToTimeAndPlaceInWhatsupFormat(schedule){
         let firstTime =null;
         let lastTime = null;
         let where = null;
+        let lastRowNum = null;
         result.forEach(({ rowNum, colNum }) => {
             if (firstTime===null) {
                 firstTime = time[rowNum];
@@ -31,10 +32,16 @@ function convertFromIndexToTimeAndPlaceInWhatsupFormat(schedule){
                     conversion = conversion + tabData + "\r\n";
                 }
                 else
-                    conversion = conversion + firstTime + "-" + lastTime + ":" + "חופשי" + "\r\n";
+                    conversion = conversion + firstTime + "-" + lastTime + ":" + "חופש" + "\r\n";
                 firstTime = time[rowNum];
                 where = place[colNum];
             }
+            else if (lastRowNum!= null && (lastRowNum +1 !== rowNum)){//same place but not the next shift
+                tabData = firstTime + "-" + lastTime + ":" + where;
+                conversion = conversion + tabData + "\r\n";
+                firstTime = time[rowNum];
+            }
+            lastRowNum = rowNum;
             lastTime = time[rowNum + 1];
 
         });

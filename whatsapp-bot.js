@@ -41,7 +41,8 @@ client.on('message', async (msg) => {
             let response = await findMeInAllTabs({
                 valueToFind
             })
-            console.log('output for getSpreadSheetTabs', JSON.stringify(convertFromIndexToTimeAndPlaceInWhatsupFormat(response), null, 2));
+            //console.log('output for getSpreadSheetTabs', JSON.stringify(response), null, 2);
+            console.log('output for convertFromIndexToTimeAndPlaceInWhatsupFormat ' + valueToFind +": ", JSON.stringify(convertFromIndexToTimeAndPlaceInWhatsupFormat(response), null, 2));
             await msg.reply(convertFromIndexToTimeAndPlaceInWhatsupFormat(response));
         } else if (func === '?') {
             let text = "אופציות לבוט (שלח הודעה עם המלל המודגש):" + "\r\n" +
@@ -68,7 +69,7 @@ client.on('message', async (msg) => {
             console.log("reloading sheet");
             await updateCacheWithSpreadSheet();
         } else {
-            console.log(func + " אופציה לא חוקית");
+            console.log(valueToFind + " :" + func + " אופציה לא חוקית");
             await msg.reply(func + " היא אופציה לא חוקית" + "\r\n" +
                 "הקש *?* בשביל תפריט");
         }

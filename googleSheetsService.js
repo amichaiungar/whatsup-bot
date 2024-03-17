@@ -10,10 +10,15 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED='0'
 
 const constants = require('./constants');
 const moment = require('moment-timezone');
-
+const ISRAEL_TIMEZONE = 'Asia/Jerusalem';
+const locale = 'he-IL'; // Hebrew (Israel) locale
+const dateOptions = {
+    timeZone: ISRAEL_TIMEZONE,
+    month: '2-digit',
+    day: '2-digit'
+};
 const spreadsheetId = constants.SPREADSHEET_ID;
 // Specify the desired timezone (Israel)
-const ISRAEL_TIMEZONE = 'Asia/Jerusalem';
 
 let spreadSheetTabCache;
 let tabs;
@@ -43,6 +48,8 @@ async function updateCacheWithSpreadSheet(){
     tabs = spreadSheetTabCache.data.sheets.map(sheet => sheet.properties.title);
     tabs = tabs.filter(item => item !== "private");
 
+    tabs = removeOldTabs(tabs);
+
     for(const sheetName of tabs) {
         let tabData = await sheets.spreadsheets.values.get({
             spreadsheetId,
@@ -51,6 +58,31 @@ async function updateCacheWithSpreadSheet(){
         })
         tabValues[sheetName] = tabData;
     }
+}
+
+function removeOldTabs(tabs) {
+    let onlyNewTabs = [];
+    const todayDate = new Date();
+    let date = new Date();
+    for (let i = 0; i<14;i++){
+        date.setDate(todayDate.getDate() + i);
+        let currentDate = date.toLocaleDateString(locale, dateOptions);
+        let [day, month] = currentDate.split('.');
+        // Remove leading zeros using parseInt
+        let formattedDay = parseInt(day, 10).toString();
+        let formattedMonth = parseInt(month, 10).toString();
+
+        // Combine the formatted day and month
+        let formattedDate = `${formattedDay}.${formattedMonth}`;
+        for(const sheetName of tabs) {
+            if (sheetName.includes(formattedDate)) {
+                onlyNewTabs.push(sheetName);
+                break;
+            }
+        }
+    }
+    return onlyNewTabs;
+    //console.info("current tabs: " + onlyNewTabs);
 }
 async function getSpreadSheetTabs() {
     return tabs;
@@ -70,12 +102,6 @@ async function findMeInAllTabs({valueToFind}) {
 }
 
 function findSheet(today){
-    const locale = 'he-IL'; // Hebrew (Israel) locale
-    const dateOptions = {
-        timeZone: ISRAEL_TIMEZONE,
-        month: '2-digit',
-        day: '2-digit'
-    };
     const todayDate = new Date();
     let currentDate;
     if (today){
@@ -144,8 +170,8 @@ async function findMeInInASpecificTab({valueToFind, sheetName}) {
         const columnIndex = row.findIndex(cellValue => cellValue.includes(valueToFind));
         if (columnIndex !== -1) {
             //console.log(`Found "${valueToFind}" at Row ${i + 1}, Column ${columnIndex + 1}`);
-            rowNum = i+1
-            colNum = columnIndex+1;
+            let rowNum = i+1
+            let colNum = columnIndex+1;
             result.push({rowNum,colNum});
         }
     }

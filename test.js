@@ -58,10 +58,12 @@ async function setUp() {
 async function testFindMe() {
     try {
         await updateCacheWithSpreadSheet();
-        const valueToFind = "אהד כהן";
+        const valueToFind = "שוורץ";
         const response = await findMeInAllTabs({
             valueToFind
         })
+        console.log('output for getSpreadSheetTabs', JSON.stringify(response), null, 2);
+
         console.log('output for getSpreadSheetTabs', JSON.stringify(convertFromIndexToTimeAndPlaceInWhatsupFormat(response), null, 2));
     } catch(error) {
         console.log(error.message, error.stack);
