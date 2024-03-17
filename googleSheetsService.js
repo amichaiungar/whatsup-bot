@@ -172,12 +172,24 @@ async function findMeInInASpecificTab({valueToFind, sheetName}) {
             //console.log(`Found "${valueToFind}" at Row ${i + 1}, Column ${columnIndex + 1}`);
             let rowNum = i+1
             let colNum = columnIndex+1;
-            result.push({rowNum,colNum});
+            let withMe = whoIsWithMe(rows[i][columnIndex], valueToFind);
+            result.push({rowNum,colNum, withMe});
         }
     }
     return {sheetName, result};
 }
-
+ function whoIsWithMe(guards, valueToFind){
+    let guardsList = guards.split(",");
+    if (guardsList.length === 2){
+        let guard = guardsList[0];
+        if (guard.includes(valueToFind))
+            return guardsList[1];
+        else
+            return guard;
+    }
+    else //guarding alone
+        return null;
+ }
 
 module.exports = {
     updateCacheWithSpreadSheet,

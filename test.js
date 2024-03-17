@@ -58,7 +58,7 @@ async function setUp() {
 async function testFindMe() {
     try {
         await updateCacheWithSpreadSheet();
-        const valueToFind = "שוורץ";
+        const valueToFind = "אונגר";
         const response = await findMeInAllTabs({
             valueToFind
         })

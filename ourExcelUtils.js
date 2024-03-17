@@ -21,25 +21,35 @@ function convertFromIndexToTimeAndPlaceInWhatsupFormat(schedule){
         let lastTime = null;
         let where = null;
         let lastRowNum = null;
-        result.forEach(({ rowNum, colNum }) => {
+        let myBuddy = null
+        result.forEach(({ rowNum, colNum , withMe}) => {
             if (firstTime===null) {
                 firstTime = time[rowNum];
                 where = place[colNum];
+                myBuddy = withMe;
             }
             if (where!==place[colNum]){//same person, different location
                 if (firstTime != null && where!=null) {
-                    tabData = firstTime + "-" + lastTime + ":" + where;
+                    if (myBuddy)
+                        tabData = firstTime + "-" + lastTime + ":" + where +"(" + myBuddy + ")";
+                    else
+                        tabData = firstTime + "-" + lastTime + ":" + where;
                     conversion = conversion + tabData + "\r\n";
                 }
                 else
                     conversion = conversion + firstTime + "-" + lastTime + ":" + "חופש" + "\r\n";
                 firstTime = time[rowNum];
                 where = place[colNum];
+                myBuddy = withMe;
             }
             else if (lastRowNum!= null && (lastRowNum +1 !== rowNum)){//same place but not the next shift
-                tabData = firstTime + "-" + lastTime + ":" + where;
+                if (myBuddy)
+                    tabData = firstTime + "-" + lastTime + ":" + where +"(" + myBuddy + ")";
+                else
+                    tabData = firstTime + "-" + lastTime + ":" + where;
                 conversion = conversion + tabData + "\r\n";
                 firstTime = time[rowNum];
+                myBuddy = withMe;
             }
             lastRowNum = rowNum;
             lastTime = time[rowNum + 1];
@@ -47,7 +57,10 @@ function convertFromIndexToTimeAndPlaceInWhatsupFormat(schedule){
         });
         //console.log("firstTime:" + firstTime + " where:"+ where);
         if (firstTime != null && where!=null) {//in case you have a free day, tab exists but no duties on this day
-            tabData = firstTime + "-" + lastTime + ":" + where;
+            if (myBuddy)
+                tabData = firstTime + "-" + lastTime + ":" + where +"(" + myBuddy + ")";
+            else
+                tabData = firstTime + "-" + lastTime + ":" + where;
             conversion = conversion + tabData + "\r\n";
         }
         else
