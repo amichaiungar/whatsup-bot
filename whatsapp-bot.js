@@ -1,12 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require("qrcode-terminal");
-//const fs = require('fs');
 
-const {
-    searchSoldierAtListByPhone
-} = require('./ourExcelUtils.js')
-const {findMeInAllTabs, updateCacheWithSpreadSheet, whoIsNow, whoIsLater} = require("./googleSheetsService");
-const {convertFromIndexToTimeAndPlaceInWhatsupFormat} = require("./ourExcelUtils");
+const {findMeInAllTabs, updateCacheWithSpreadSheet, whoIsNow, whoIsLater, searchSoldierAtListByPhone, convertFromIndexToTimeAndPlaceInWhatsupFormat} = require("./googleSheetsService");
 
 const constants = require('./constants');
 
@@ -50,7 +45,7 @@ client.on('message', async (msg) => {
                     "*עכשיו* או *2*: מי שומר עכשיו?" + "\r\n" +
                     "*הבא* או *3*: מי שומר בשעה הבאה?" + "\r\n" +
                     "*החלפה* או *4*: דואג לשינוי חילוף בקובץ" + "\r\n" +
-                    "*5*: מתי משתחררים?";
+                    "*עד מתי* או *5*: מתי משתחררים?";
                 await msg.reply(text);
             } else if (func === 'עכשיו' || func === '2') {
                 let text = await whoIsNow();
@@ -61,8 +56,10 @@ client.on('message', async (msg) => {
             } else if (func === 'החלפה' || func === '4') {
                 let text = "עוד לא מומש";
                 await msg.reply(text);
-            } else if (func === '5') {
-                let text = "23.4.2033";
+            } else if (func === 'עד מתי' || func === '5') {
+                let text = "חחחח לפחות עד יולי";
+                if  (valueToFind === 'רועי לוי')
+                    text= "1/4/2024";
                 await msg.reply(text);
             } else if (func === "007") {
                 console.log("reloading sheet");

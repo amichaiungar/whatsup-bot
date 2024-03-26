@@ -6,13 +6,10 @@ const {
     updateCacheWithSpreadSheet,
     whoIsNow,
     whoIsLater,
-    findSheet
-} = require('./googleSheetsService.js');
-
-const {
+    findSheet,
     searchSoldierAtListByPhone,
     convertFromIndexToTimeAndPlaceInWhatsupFormat
-} = require('./ourExcelUtils.js')
+} = require('./googleSheetsService.js');
 
 const constants = require('./constants');
 const sheetName = constants.TEST_SHEET;
@@ -58,7 +55,7 @@ async function setUp() {
 async function testFindMe() {
     try {
         await updateCacheWithSpreadSheet();
-        const valueToFind = "אונגר";
+        const valueToFind = "מלכא";
         const response = await findMeInAllTabs({
             valueToFind
         })
@@ -78,10 +75,12 @@ function testSearchSoldierAtListByPhone(){
     console.log(searchSoldierAtListByPhone("972556618842").name);
 }
 
-function main() {
+async function main() {
     //setUp().then(r => testFindMe().then(testGetSpreadSheetValues()));
-    setUp().then(r => testFindMe());
-    //setUp().then(r =>  console.log("now:" + whoIsNow()));
+    //setUp().then(r => testFindMe());
+    await setUp();
+    let text = await whoIsLater();
+    console.log("now:" + text);
 
     //setUp().then(r => console.log("now:" + whoIsNow())).then(r => console.log("later " + whoIsLater()));
  //   testGetSpreadSheetTabs();
