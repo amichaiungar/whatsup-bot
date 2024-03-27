@@ -1,12 +1,13 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require("qrcode-terminal");
 
-const {findMeInAllTabs, updateCacheWithSpreadSheet, whoIsNow, whoIsLater, searchSoldierAtListByPhone, convertFromIndexToTimeAndPlaceInWhatsupFormat} = require("./googleSheetsService");
+const {findMeInAllTabs, updateCacheWithSpreadSheet, whoIsNow, whoIsLater, searchSoldierAtListByPhone, convertFromIndexToTimeAndPlaceInWhatsupFormat, whoIsNextShift} = require("./googleSheetsService");
 
 const constants = require('./constants');
 
 const spreadsheetId = constants.SPREADSHEET_ID;
-
+let answerNum = -1;
+const answers = ["חחחח לפחות עד יולי", "מי שלא צם לא משתחרר...", "בפנסיה", "כששפיר ישמור לילות", "כשמוזס יתחיל לזרוק", "הרבנות תדאג לנו ל4 המינים?"];
 //const client = new Client({ session: sessionData });
 const client = new Client({
     authStrategy: new LocalAuth({
@@ -19,6 +20,12 @@ client.on('ready', async() => {
     await updateCacheWithSpreadSheet();
     console.log('WhatsApp bot is ready!!');
 });
+
+function getAnswerForWhenAreWeGettingOut() {
+    answerNum ++;
+    answerNum = answerNum % answers.length;
+     return answers[answerNum];
+}
 
 // Event: When a new message arrives
 client.on('message', async (msg) => {
@@ -43,23 +50,23 @@ client.on('message', async (msg) => {
                 let text = "אופציות לבוט (שלח הודעה עם המלל המודגש):" + "\r\n" +
                     " המילה *מתי* או *אני* או *1*: מראה לך מתי אתה שומר" + "\r\n" +
                     "*עכשיו* או *2*: מי שומר עכשיו?" + "\r\n" +
-                    "*הבא* או *3*: מי שומר בשעה הבאה?" + "\r\n" +
-                    "*החלפה* או *4*: דואג לשינוי חילוף בקובץ" + "\r\n" +
+                    "*הבא* או *3*: מי במשמרת הבאה?" + "\r\n" +
+                    "*הבא* או *4*: מי שומר במשמרת הבאה?" + "\r\n" +
                     "*עד מתי* או *5*: מתי משתחררים?";
                 await msg.reply(text);
             } else if (func === 'עכשיו' || func === '2') {
                 let text = await whoIsNow();
                 await msg.reply(text);
-            } else if (func === 'הבא' || func === '3') {
+            } else if (func === 'הבא' || func === '4') {
                 let text = await whoIsLater();
                 await msg.reply(text);
-            } else if (func === 'החלפה' || func === '4') {
-                let text = "עוד לא מומש";
+            } else if (func === 'הבא' || func === '3') {
+                let text = await whoIsNextShift()
                 await msg.reply(text);
-            } else if (func === 'עד מתי' || func === '5') {
-                let text = "חחחח לפחות עד יולי";
+            } else if (func === 'עד מתי' || func === '5' || func === 'עד מתי?') {
+                let text;
                 if  (valueToFind === 'רועי לוי')
-                    text= "1/4/2024";
+                    text= getAnswerForWhenAreWeGettingOut();
                 await msg.reply(text);
             } else if (func === "007") {
                 console.log("reloading sheet");

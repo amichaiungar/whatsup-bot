@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+//const excelJS = require('exceljs');
+//const fs = require('fs');
 const soldiers=require('./soldiers.json');
 const sheets = google.sheets('v4');
 process.env.GCLOUD_PROJECT='whatsupbot-416123;'
@@ -36,6 +38,31 @@ async function getSpreadSheet({spreadsheetId, auth}) {
     });
     return res;
 }
+
+async function downloadFileToLocal(auth) {
+    const drive = google.drive({ version: 'v3', auth });
+    const fileId = '1KTxm8NdCqu09znBRnZqAy-0dJHUFYryJnmbVTHgxMMY'; // Replace with your actual Google Sheet ID
+
+    const response = await drive.files.export({
+        fileId,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }, { responseType: 'stream' });
+
+    const dest = fs.createWriteStream('output.xlsx'); // Specify your desired local file path
+    response.data.pipe(dest);
+
+    return new Promise((resolve, reject) => {
+        dest.on('finish', () => {
+            console.log('Google Sheet saved to output.xlsx');
+            resolve();
+        });
+        dest.on('error', (err) => {
+            console.error('Error saving Google Sheet:', err);
+            reject(err);
+        });
+    });
+}
+
 async function updateCacheWithSpreadSheet(){
     const auth = await getAuthToken();
     spreadSheetTabCache = await sheets.spreadsheets.get({
@@ -46,6 +73,8 @@ async function updateCacheWithSpreadSheet(){
     tabs = tabs.filter(item => item !== "private");
     tabs = tabs.filter(item => item !== "סיכום שבוע");
 
+    //todo await downloadFileToLocal(auth);
+
     tabs = removeOldTabs(tabs);
 
     for(const sheetName of tabs) {
@@ -55,26 +84,7 @@ async function updateCacheWithSpreadSheet(){
             range: sheetName
         })
         tabValues[sheetName] = tabData;
-        // List comments
-/*
-        try {
-            const response = await sheets.spreadsheets.get({
-                auth,
-                spreadsheetId,
-                includeGridData: true, // Ensures cell data includes comments
-            });
 
-            //const sheetData = response.data.sheets[0].data[0];
-            const cellData = response.data.sheets[9].data[0].rowData[2].values[1];
-
-            if (cellData.note) {
-                console.log('Comment:', cellData.note);
-            } else {
-                console.log('No comment found for this cell.');
-            }
-        } catch (error) {
-            console.error('Error fetching cell data:', error.message);
-        }*/
     }
 }
 
@@ -158,7 +168,8 @@ async function whoIsNow() {
 
     const spreadSheetValues = await getSpreadSheetValues(sheet);
     const rows = spreadSheetValues.data.values;
-    return   "עכשיו שומרים: " + transalteRow(sheet, rows, getTimeRow(currentHour));
+    const row = rows[getTimeRow(currentHour)-1];
+    return   "עכשיו שומרים: " + translateRow(sheet, row);
 }
 
 async function whoIsLater() {
@@ -178,9 +189,71 @@ async function whoIsLater() {
 
     const spreadSheetValues = await getSpreadSheetValues(sheet);
     const rows = spreadSheetValues.data.values;
-
-    return "בשעה הבאה שומרים: " + transalteRow(sheet, rows, timeRow);
+    const row = rows[timeRow];
+    return "בשעה הבאה שומרים: " + translateRow(sheet, row);
 }
+
+async function whoIsNextShift() {
+    // Get the current time in Israel timezone
+    const currentTime = moment().tz(ISRAEL_TIMEZONE);
+    // Round to the nearest hour
+    const currentHour = currentTime.format('HH:00');
+    getTimeRow(currentHour);
+    let timeRow = getNextTimeRow(getTimeRow(currentHour));
+    let  isToday = true;
+    if (timeRow > 25){
+        timeRow = 2;
+        isToday = false;
+    }
+    let sheet = findSheet(isToday);
+    if (sheet == null)
+        return "לא מצאתי את הטאב של היום הבא"
+
+    const spreadSheetValues = await getSpreadSheetValues(sheet);
+    const rows = spreadSheetValues.data.values;
+    const row = rows[timeRow-1];
+    return "במשמרת הבאה שומרים: " + translateRow(sheet, row);
+}
+function getNextTimeRow(currentTimeRow) {
+    switch (currentTimeRow) {
+        case 2:
+        case 3:
+        case 4:
+            return 5;
+        case 5:
+        case 6:
+        case 7:
+            return 8;
+        case 8:
+        case 9:
+        case 10:
+            return 11;
+        case 11:
+        case 12:
+        case 13:
+            return 14;
+        case 14:
+        case 15:
+        case 16:
+            return 18;
+        case 17:
+            return 20;
+        case 18:
+        case 19:
+            return 21;
+        case 20:
+            return 23;
+        case 21:
+        case 22:
+            return 24;
+        case 23:
+        case 24:
+        case 25:
+            return 26;
+    }
+}
+
+
 
 async function findMeInInASpecificTab({valueToFind, sheetName}) {
 
@@ -292,8 +365,7 @@ function getTimeRow(hour){
     return timeToRowObj[hour];
 }
 
-function transalteRow(sheetName, rows, rowNum) {
-    const row = rows[rowNum-1];
+function translateRow(sheetName, row) {
     let result = "";
     for (let i = 1; i < row.length; i++) {
         let name = row[i];
@@ -364,13 +436,12 @@ module.exports = {
     updateCacheWithSpreadSheet,
     whoIsNow,
     whoIsLater,
+    whoIsNextShift,
     getSpreadSheetValues,
     getSpreadSheetTabs,
     findMeInAllTabs,
     findMeInInASpecificTab,
     findSheet,
-    getTimeRow,
     searchSoldierAtListByPhone,
-    transalteRow,
     convertFromIndexToTimeAndPlaceInWhatsupFormat
 }
