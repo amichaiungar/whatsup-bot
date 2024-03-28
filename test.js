@@ -6,7 +6,6 @@ const {
     updateCacheWithSpreadSheet,
     whoIsNow,
     whoIsLater,
-    whoIsNextShift,
     searchSoldierAtListByPhone,
     convertFromIndexToTimeAndPlaceInWhatsupFormat
 } = require('./googleSheetsService.js');
@@ -79,12 +78,10 @@ async function main() {
     //setUp().then(r => testFindMe().then(testGetSpreadSheetValues()));
     //setUp().then(r => testFindMe());
     await setUp();
-    let now = await whoIsNow();
-    console.log("now:" + now);
+    // let now = await whoIsNow();
+    // console.log("now:" + now);
     let later = await whoIsLater();
     console.log("later:" + later);
-    let after = await whoIsNextShift();
-    console.log("after:" + after);
 
     //setUp().then(r => console.log("now:" + whoIsNow())).then(r => console.log("later " + whoIsLater()));
  //   testGetSpreadSheetTabs();

@@ -190,7 +190,9 @@ async function whoIsLater() {
     const spreadSheetValues = await getSpreadSheetValues(sheet);
     const rows = spreadSheetValues.data.values;
     const row = rows[timeRow];
-    return "בשעה הבאה שומרים: " + translateRow(sheet, row);
+    let result =  "בשעה הבאה שומרים: " + translateRow(sheet, row);
+    let later = await whoIsNextShift();
+    return  result + "\r\n" + later;
 }
 
 async function whoIsNextShift() {
@@ -436,7 +438,6 @@ module.exports = {
     updateCacheWithSpreadSheet,
     whoIsNow,
     whoIsLater,
-    whoIsNextShift,
     getSpreadSheetValues,
     getSpreadSheetTabs,
     findMeInAllTabs,
